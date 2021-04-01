@@ -8,7 +8,7 @@ __pycache__
 
 # Environment variables
 .env
-# .env.*
+.env.*
 
 # Static files
 node_modules
