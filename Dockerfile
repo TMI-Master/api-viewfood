@@ -1,5 +1,5 @@
 # Pull base image
-FROM python:3.7.2-slim
+FROM python:3.9.2-slim
 
 # Instal system dependencies
 RUN apt-get update
