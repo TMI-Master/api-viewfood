@@ -7,8 +7,8 @@ __pycache__
 *.sqlite3
 
 # Environment variables
-.env
-.env.*
+# .env
+# .env.*
 
 # Static files
 node_modules
