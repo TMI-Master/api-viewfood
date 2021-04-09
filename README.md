@@ -85,7 +85,7 @@ Command | Shortcut for
 `pipenv run dev-server` | `python manage.py runserver`
 `pipenv run tests` | `pytest`
 `pipenv run celery` | `python manage.py celery_autoreload`
-`pipenv run test-celery` | `python manage.py test_celery`
+`pipenv run test-celery` | `python manage.py command_test_celery`
 `pipenv run shell` | `python manage.py shell`
 `pipenv run makemigrations` | `python manage.py makemigrations`
 `pipenv run migrate` | `python manage.py migrate`

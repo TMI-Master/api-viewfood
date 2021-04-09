@@ -57,7 +57,7 @@ REGISTRATION_AUTO_LOGIN = env.bool('REGISTRATION_AUTO_LOGIN', default=True)
 # -----------------------------------------------------------------------------
 # Databases
 # -----------------------------------------------------------------------------
-DJANGO_DATABASE_URL = env.db('DATABASE_URL', default='postgres://<user>:<password>@<host>:5432/apidjango')
+DJANGO_DATABASE_URL = env.db('DATABASE_URL', default='postgres://postgres@localhost/test_db')
 DATABASES = {'default': DJANGO_DATABASE_URL}
 
 # -----------------------------------------------------------------------------
@@ -74,9 +74,13 @@ INSTALLED_APPS = [
 
     # Third party
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Local
     'apps.misc',
+    'apps.user',
+    'apps.menu',
+
 ]
 
 if ENV == 'dev':
