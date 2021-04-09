@@ -79,6 +79,8 @@ INSTALLED_APPS = [
     # Local
     'apps.misc',
     'apps.user',
+    'apps.menu',
+
 ]
 
 if ENV == 'dev':
