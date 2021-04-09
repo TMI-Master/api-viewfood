@@ -74,9 +74,11 @@ INSTALLED_APPS = [
 
     # Third party
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Local
     'apps.misc',
+    'apps.user',
 ]
 
 if ENV == 'dev':
