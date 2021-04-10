@@ -12,9 +12,9 @@ from PIL import Image
 
 from apps.menu.models import Menu
 
-def image_upload_url(menu_id):
+def image_upload_url():
     """Return URL for menu image upload"""
-    return reverse('menu:menu-upload-image', args=[menu_id])
+    return reverse('menu:menu-upload')
 
 def sample_menu(**params):
     """Create and return a sample menu"""
@@ -27,28 +27,37 @@ class MenuImageUploadTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.menu = sample_menu()
+        self.menu = None
 
     def tearDown(self):
-        self.menu.image.delete()
+        if self.menu != None:
+            self.menu.image.delete()
 
     def test_upload_image_to_menu(self):
         """Test uploading an image to menu"""
-        url = image_upload_url(self.menu.id)
+        url = image_upload_url()
         with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
             img = Image.new('RGB', (10, 10))
             img.save(ntf, format='JPEG')
             ntf.seek(0)
             res = self.client.post(url, {'image': ntf}, format='multipart')
 
-        self.menu.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn('image', res.data)
+        self.menu = Menu.objects.get(pk=res.data['id'])
+        self.menu.refresh_from_db()
         self.assertTrue(os.path.exists(self.menu.image.path))
 
     def test_upload_image_bad_request(self):
         """Test uploading an invalid image"""
-        url = image_upload_url(self.menu.id)
+        url = image_upload_url()
         res = self.client.post(url, {'image': 'notimage'}, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_upload_image_bad_image(self):
+        """Test uploading an invalid image"""
+        url = image_upload_url()
+        res = self.client.post(url, {'image': '' }, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

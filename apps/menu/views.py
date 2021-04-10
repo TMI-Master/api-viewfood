@@ -11,12 +11,9 @@ class MenuViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.MenuImageSerializer
     queryset = Menu.objects.all()
 
-    @action(methods=['POST'], detail=True, url_path='upload-image')
-    def upload_image(self, request, pk=None):
-        """Upload an image to a menu"""
-        menu = self.get_object()
+    @action(methods=['POST'], detail=False, url_path='upload')
+    def upload(self, request):
         serializer = self.get_serializer(
-            menu,
             data=request.data
         )
 
