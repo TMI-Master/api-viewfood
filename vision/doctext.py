@@ -1,6 +1,6 @@
 import argparse
-from enum import Enum
 import io
+from enum import Enum
 
 from google.cloud import vision
 from PIL import Image, ImageDraw

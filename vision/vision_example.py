@@ -23,8 +23,7 @@ labels = response.label_annotations
 print('Labels:')
 for label in labels:
     print(label.description)
-    print(label.description, '(%.2f%%)' % (label.score*100.))
-
+    print(label.description, '(%.2f%%)' % (label.score * 100.))
 
 image_uri = 'gs://cloud-vision-codelab/otter_crossing.jpg'
 
@@ -58,6 +57,5 @@ print(texts[0])
 for text in texts:
     print('=' * 30)
     print(text.description)
-    #vertices = ['(%s,%s)' % (v.x, v.y) for v in text.bounding_poly.vertices]
-    #print('bounds:', ",".join(vertices))
-
+    # vertices = ['(%s,%s)' % (v.x, v.y) for v in text.bounding_poly.vertices]
+    # print('bounds:', ",".join(vertices))
