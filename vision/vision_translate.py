@@ -1,3 +1,4 @@
+import argparse
 import io
 from enum import Enum
 
@@ -5,13 +6,6 @@ import six
 from google.cloud import translate_v2 as translate
 from google.cloud import vision
 from PIL import Image, ImageDraw
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-
-from apps.menu import serializers
-from apps.menu.models import Menu
-from conf.settings import MEDIA_ROOT
 
 
 class FeatureType(Enum):
@@ -93,7 +87,7 @@ def draw_text(image, bounds, texts, color):
     return image
 
 
-def get_document_bounds(image_file, feature, lang):
+def get_document_bounds(image_file, feature):
     """Returns document bounds given an image."""
     client = vision.ImageAnnotatorClient()
 
@@ -112,22 +106,20 @@ def get_document_bounds(image_file, feature, lang):
     general_description = datas[0].description
     print(general_description)
 
-    translate_text_print(lang, general_description)
+    translate_text_print('EN', general_description)
 
     for text in datas:
         texts.append(text.description)
-        translates.append(translate_text(lang, text.description))
+        translates.append(translate_text('EN', text.description))
         bounds.append(text.bounding_poly)
 
     # The list `bounds` contains the coordinates of the bounding boxes.
     return bounds, texts, translates
 
 
-def render_doc_text(filein, fileout, lang):
+def render_doc_text(filein, fileout):
     image = Image.open(filein)
-    bounds, texts, translates = get_document_bounds(
-        filein, FeatureType.WORD, lang
-    )
+    bounds, texts, translates = get_document_bounds(filein, FeatureType.WORD)
     draw_boxes(image, bounds, 'yellow')
     draw_text(image, bounds, translates, 'yellow')
 
@@ -135,50 +127,12 @@ def render_doc_text(filein, fileout, lang):
         image.save(fileout)
     else:
         image.show()
-    return translates, texts
 
 
-class MenuViewSet(viewsets.ModelViewSet):
-    """Manage menu in the database"""
-    serializer_class = serializers.MenuImageSerializer
-    queryset = Menu.objects.all()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('detect_file', help='The image for text detection.')
+    parser.add_argument('-out_file', help='Optional output file', default=0)
+    args = parser.parse_args()
 
-    @action(methods=['POST'], detail=False, url_path='upload')
-    def upload(self, request):
-        serializer = self.get_serializer(
-            data=request.data
-        )
-
-        if serializer.is_valid():
-            print(request.data)
-            serializer.save()
-            print(serializer.data['id'])
-
-            image_ = Menu.objects.get(id=serializer.data['id'])
-            image_path = image_.image.path
-            image_name = image_.image.name
-
-            lang = serializer.data['lang']
-
-            print(image_path)
-            print(image_name)
-
-            r_lang, r_text = render_doc_text(
-                image_path, MEDIA_ROOT + '/' + image_name, lang
-            )
-
-            image_.description = r_lang[0]
-            image_.original = r_text[0]
-            image_.save()
-
-            seria = serializers.MenuImageSerializer(image_)
-
-            return Response(
-                seria.data,
-                status=status.HTTP_200_OK
-            )
-
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    render_doc_text(args.detect_file, args.out_file)

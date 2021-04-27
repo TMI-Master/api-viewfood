@@ -8,5 +8,8 @@ class MenuImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Menu
-        fields = ('id', 'image')
+        fields = (
+            'id', 'image', 'lang',
+            'description', 'original', 'translated_image'
+        )
         read_only_fields = ('id',)
