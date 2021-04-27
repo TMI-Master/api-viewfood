@@ -2,6 +2,8 @@ import argparse
 import io
 from enum import Enum
 
+import six
+from google.cloud import translate_v2 as translate
 from google.cloud import vision
 from PIL import Image, ImageDraw
 
@@ -12,6 +14,47 @@ class FeatureType(Enum):
     PARA = 3
     WORD = 4
     SYMBOL = 5
+
+
+def translate_text_print(target, text):
+    """Translates text into the target language.
+
+    Target must be an ISO 639-1 language code.
+    See https://g.co/cloud/translate/v2/translate-reference#supported_languages
+    """
+
+    translate_client = translate.Client()
+
+    if isinstance(text, six.binary_type):
+        text = text.decode("utf-8")
+
+    # Text can also be a sequence of strings, in which case this method
+    # will return a sequence of results for each text.
+    result = translate_client.translate(text, target_language=target)
+
+    print(u"Text: {}".format(result["input"]))
+    print(u"Translation: {}".format(result["translatedText"]))
+    print(u"Detected source language: \
+        {}".format(result["detectedSourceLanguage"]))
+
+
+def translate_text(target, text):
+    """Translates text into the target language.
+
+    Target must be an ISO 639-1 language code.
+    See https://g.co/cloud/translate/v2/translate-reference#supported_languages
+    """
+
+    translate_client = translate.Client()
+
+    if isinstance(text, six.binary_type):
+        text = text.decode("utf-8")
+
+    # Text can also be a sequence of strings, in which case this method
+    # will return a sequence of results for each text.
+    result = translate_client.translate(text, target_language=target)
+
+    return result["translatedText"]
 
 
 def draw_boxes(image, bounds, color):
@@ -32,11 +75,8 @@ def draw_text(image, bounds, texts, color):
     draw = ImageDraw.Draw(image)
 
     aux = 0
-    # print(texts)
-    # print(bounds)
     for bound in bounds:
         if (aux != 0):
-            # print(bound.vertices[0].x)
             draw.text(
                 (bound.vertices[0].x, bound.vertices[0].y),
                 str(texts[aux]).encode('utf-8'),
@@ -53,6 +93,7 @@ def get_document_bounds(image_file, feature):
 
     bounds = []
     texts = []
+    translates = []
 
     with io.open(image_file, 'rb') as image_file:
         content = image_file.read()
@@ -60,48 +101,27 @@ def get_document_bounds(image_file, feature):
     image = vision.Image(content=content)
 
     response = client.document_text_detection(image=image)
-    # document = response.full_text_annotation
     datas = response.text_annotations
+
+    general_description = datas[0].description
+    print(general_description)
+
+    translate_text_print('EN', general_description)
 
     for text in datas:
         texts.append(text.description)
+        translates.append(translate_text('EN', text.description))
         bounds.append(text.bounding_poly)
 
-        # print('bounds:', ",".join(vertices))
-    # print(document)
-
-    # Collect specified feature bounds by enumerating all document features
-    """
-    for page in document.pages:
-        for block in page.blocks:
-            for paragraph in block.paragraphs:
-                for word in paragraph.words:
-                    for symbol in word.symbols:
-                        if (feature == FeatureType.SYMBOL):
-                            bounds.append(symbol.bounding_box)
-
-                    if (feature == FeatureType.WORD):
-                        bounds.append(word.bounding_box)
-
-                if (feature == FeatureType.PARA):
-                    bounds.append(paragraph.bounding_box)
-
-            if (feature == FeatureType.BLOCK):
-                bounds.append(block.bounding_box)
-    """
     # The list `bounds` contains the coordinates of the bounding boxes.
-    return bounds, texts
+    return bounds, texts, translates
 
 
 def render_doc_text(filein, fileout):
     image = Image.open(filein)
-    # bounds, texts = get_document_bounds(filein, FeatureType.BLOCK)
-    # draw_boxes(image, bounds, 'blue')
-    # bounds, texts = get_document_bounds(filein, FeatureType.PARA)
-    # draw_boxes(image, bounds, 'red')
-    bounds, texts = get_document_bounds(filein, FeatureType.WORD)
+    bounds, texts, translates = get_document_bounds(filein, FeatureType.WORD)
     draw_boxes(image, bounds, 'yellow')
-    draw_text(image, bounds, texts, 'yellow')
+    draw_text(image, bounds, translates, 'yellow')
 
     if fileout != 0:
         image.save(fileout)
