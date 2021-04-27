@@ -171,8 +171,10 @@ class MenuViewSet(viewsets.ModelViewSet):
             image_.original = r_text[0]
             image_.save()
 
+            seria = serializers.MenuImageSerializer(image_)
+
             return Response(
-                serializer.data,
+                seria.data,
                 status=status.HTTP_200_OK
             )
 
