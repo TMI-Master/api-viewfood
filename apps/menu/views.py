@@ -1,4 +1,5 @@
 import io
+import math
 from enum import Enum
 
 import six
@@ -42,6 +43,44 @@ def translate_text_print(target, text):
     print(u"Translation: {}".format(result["translatedText"]))
     print(u"Detected source language: \
         {}".format(result["detectedSourceLanguage"]))
+
+
+def translate_all_text(target, text):
+    """Translates text into the target language.
+
+    Target must be an ISO 639-1 language code.
+    See https://g.co/cloud/translate/v2/translate-reference#supported_languages
+    """
+
+    translate_client = translate.Client()
+
+    result_text = []
+
+    # Text can also be a sequence of strings, in which case this method
+    # will return a sequence of results for each text.
+    n_text = len(text)
+    # print(n_text)
+    num_executions = math.ceil(n_text / 120)
+    # print(num_executions)
+    for i in range(0, num_executions):
+        # print(i)
+        pos = i * 120
+        # print(pos)
+        end_pos = pos + 120
+        if (pos + 120) > n_text:
+            end_pos = n_text
+        else:
+            end_pos = pos + 120
+        # print(end_pos)
+        text_to_translate = text[(pos):(end_pos)]
+        result = translate_client.translate(
+            text_to_translate, target_language=target
+        )
+        # print(result)
+        for t in result:
+            result_text.append(t["translatedText"])
+
+    return result_text
 
 
 def translate_text(target, text):
@@ -99,6 +138,7 @@ def get_document_bounds(image_file, feature, lang):
 
     bounds = []
     texts = []
+    texts_ = []
     translates = []
 
     with io.open(image_file, 'rb') as image_file:
@@ -109,15 +149,18 @@ def get_document_bounds(image_file, feature, lang):
     response = client.document_text_detection(image=image)
     datas = response.text_annotations
 
-    general_description = datas[0].description
-    print(general_description)
+    # general_description = datas[0].description
+    # print(datas)
+    # print(general_description)
 
-    translate_text_print(lang, general_description)
+    # translate_text_print(lang, general_description)
 
     for text in datas:
+        texts_.append(text.description)
         texts.append(text.description)
-        translates.append(translate_text(lang, text.description))
         bounds.append(text.bounding_poly)
+
+    translates = translate_all_text(lang, texts_)
 
     # The list `bounds` contains the coordinates of the bounding boxes.
     return bounds, texts, translates
@@ -150,9 +193,9 @@ class MenuViewSet(viewsets.ModelViewSet):
         )
 
         if serializer.is_valid():
-            print(request.data)
+            # print(request.data)
             serializer.save()
-            print(serializer.data['id'])
+            # print(serializer.data['id'])
 
             image_ = Menu.objects.get(id=serializer.data['id'])
             image_path = image_.image.path
@@ -160,8 +203,8 @@ class MenuViewSet(viewsets.ModelViewSet):
 
             lang = serializer.data['lang']
 
-            print(image_path)
-            print(image_name)
+            # print(image_path)
+            # print(image_name)
 
             r_lang, r_text = render_doc_text(
                 image_path, MEDIA_ROOT + '/' + image_name, lang
