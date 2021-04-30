@@ -106,12 +106,15 @@ def draw_boxes(image, bounds, color):
     """Draw a border around the image using the hints in the vector list."""
     draw = ImageDraw.Draw(image)
 
+    aux = 0
     for bound in bounds:
-        draw.polygon([
-            bound.vertices[0].x, bound.vertices[0].y,
-            bound.vertices[1].x, bound.vertices[1].y,
-            bound.vertices[2].x, bound.vertices[2].y,
-            bound.vertices[3].x, bound.vertices[3].y], None, color)
+        if aux != 0:
+            draw.polygon([
+                bound.vertices[0].x, bound.vertices[0].y,
+                bound.vertices[1].x, bound.vertices[1].y,
+                bound.vertices[2].x, bound.vertices[2].y,
+                bound.vertices[3].x, bound.vertices[3].y], fill=(255,255,255,128), outline=color)
+        aux = 1
     return image
 
 
