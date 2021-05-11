@@ -188,3 +188,5 @@ if USE_SENTRY:
         integrations=[DjangoIntegration()],
         environment=ENV
     )
+
+REST_FRAMEWORK = { 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema' }

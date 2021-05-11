@@ -113,7 +113,9 @@ def draw_boxes(image, bounds, color):
                 bound.vertices[0].x, bound.vertices[0].y,
                 bound.vertices[1].x, bound.vertices[1].y,
                 bound.vertices[2].x, bound.vertices[2].y,
-                bound.vertices[3].x, bound.vertices[3].y], fill=(255,255,255,128), outline=color)
+                bound.vertices[3].x, bound.vertices[3].y],
+                fill=(255, 255, 255, 128), outline=color
+            )
         aux = 1
     return image
 
